@@ -6,7 +6,7 @@ import GeoLocation from "./GeoLocation";
 const ENDPOINT = "http://127.0.0.1:4001";
 
 function App() {
-  const [response, setResponse] = useState("");
+  const [random, setRandom] = useState("");
   useEffect(() => {
     const socket = socketIOClient(ENDPOINT);
     handleConnect();
@@ -23,17 +23,23 @@ function App() {
   const handleConnect = () => {
     const socket = socketIOClient(ENDPOINT);
     socket.connect();
-    socket.on("FromAPI", (data) => {
-      setResponse(data);
+
+    setInterval(() => socket.emit("random-front", Math.random()), 2000);
+
+    //TODO: use below in control panel not here
+    socket.on("random-back", (data) => {
+      console.log("data is back to Front", data);
+      setRandom(data);
     });
   };
+
   return (
-    <p>
-      It's <time dateTime={response}>{response}</time>
+    <>
+      <span>{random}</span>
       <button onClick={handleDisconnect}>GO OFFLINE</button>
       <button onClick={handleConnect}>GO ONLINE</button>
       <GeoLocation watchPosition={true} />
-    </p>
+    </>
   );
 }
 
