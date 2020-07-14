@@ -4,6 +4,7 @@ const socketIo = require("socket.io");
 
 const port = process.env.PORT || 4001;
 const index = require("./routes/index");
+const { Console } = require("console");
 
 const app = express();
 app.use(index);
@@ -19,17 +20,16 @@ io.on("connection", (socket) => {
   if (interval) {
     clearInterval(interval);
   }
-  interval = setInterval(() => getApiAndEmit(socket), 1000);
+  // interval = setInterval(() => socket.emit("s", { ex: 1 }), 1000);
   socket.on("disconnect", () => {
     console.log("Client disconnected");
     clearInterval(interval);
   });
-});
 
-const getApiAndEmit = (socket) => {
-  const response = new Date();
-  // Emitting a new message. Will be consumed by the client
-  socket.emit("FromAPI", response);
-};
+  socket.on("locationFront", (data) => {
+    console.log(data, "datafromFront");
+    socket.broadcast.emit("locationApi", data);
+  });
+});
 
 server.listen(port, () => console.log(`Listening on port ${port}`));

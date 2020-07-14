@@ -1,44 +1,71 @@
 import React, { useLayoutEffect, useEffect, useState } from "react";
+import socketIOClient from "socket.io-client";
+
 import "./index.scss";
 import { CarIcon } from "./icons";
-//prettier-ignore
+const ENDPOINT = "http://127.0.0.1:4001";
+
 //TODO: Multiple map types
-const HereMaps = ({latitude, longitude}) => {
+const HereMaps = ({ latitude, longitude }) => {
+  // console.log("latitude", latitude);
+  // console.log("longitude", longitude);
+  // Create a reference to the HTML element we want to put the map on
+  const mapRef = React.useRef(null);
+  const [lng, setLng] = useState(longitude);
+  const [lat, setLat] = useState(latitude);
 
-    // console.log("latitude", latitude);
-    // console.log("longitude", longitude);
-    // Create a reference to the HTML element we want to put the map on
-    const mapRef = React.useRef(null);
-    const [lng, setLng] = useState(longitude);
-    const [lat, setLat] = useState(latitude);
+  useEffect(() => {
+    setLng(longitude);
+    setLat(latitude);
+    console.log(lng, lat);
+  }, [longitude, latitude]);
 
-    useEffect(() => {
-      setLng(longitude);
-      setLat(latitude);
-      console.log(lng,lat);
-    }, [longitude, latitude]);
-    
+  useEffect(() => {
+    const coordinates = { longitude: lng, latitude: lat };
+    const socket = socketIOClient(ENDPOINT);
+    handleConnect();
 
-    useLayoutEffect(() => {
+    setInterval(() => socket.emit("locationFront", coordinates), 1000);
+    socket.on("locationApi", (data) => {
+      console.log("datafromSocket", data);
+    });
+
+    // CLEAN UP THE EFFECT
+    return () => socket.disconnect();
+    //
+  }, []);
+
+  const handleDisconnect = () => {
+    const socket = socketIOClient(ENDPOINT);
+    console.log("disconnected");
+    socket.disconnect();
+  };
+  const handleConnect = () => {
+    const socket = socketIOClient(ENDPOINT);
+    socket.connect();
+  };
+
+  useLayoutEffect(() => {
     if (!mapRef.current) return;
     // @ts-ignore
     const H = window.H;
     const platform = new H.service.Platform({
-        'apikey': 'oZkMqrUPiTShk-rHk2xoobxW9tIf1h-UbFpYgWQ228M'
+      apikey: "oZkMqrUPiTShk-rHk2xoobxW9tIf1h-UbFpYgWQ228M",
     });
     const defaultLayers = platform.createDefaultLayers();
     const layers = platform.createDefaultLayers();
     const hMap = new H.Map(mapRef.current, layers.raster.normal.transit, {
       center: { lat, lng },
       zoom: 12,
-      pixelRatio: window.devicePixelRatio || 1
+      pixelRatio: window.devicePixelRatio || 1,
     });
 
-    
-    const icon = new H.map.Icon(CarIcon), coords = { lat, lng }, marker = new H.map.Marker(coords, {icon: icon})
-    
+    const icon = new H.map.Icon(CarIcon),
+      coords = { lat, lng },
+      marker = new H.map.Marker(coords, { icon: icon });
+
     marker.setGeometry({ lat, lng });
-      hMap.setCenter({ lat, lng });
+    hMap.setCenter({ lat, lng });
 
     hMap.addObject(marker);
     hMap.setCenter(coords);
@@ -57,9 +84,9 @@ const HereMaps = ({latitude, longitude}) => {
     return () => {
       hMap.dispose();
     };
-    }, [mapRef]); // This will run this hook every time this ref is updated
+  }, [mapRef]); // This will run this hook every time this ref is updated
 
-    return <div className="map" ref={mapRef} />;
+  return <div className="map" ref={mapRef} />;
 };
 
 export default HereMaps;
