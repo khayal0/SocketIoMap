@@ -25,7 +25,7 @@ io.on("connection", (socket) => {
   });
   socket.on("random-front", (data) => {
     console.log("random-front is", data);
-    socket.emit("random-back", data);
+    socket.broadcast.emit("random-back", data);
   });
 });
 
