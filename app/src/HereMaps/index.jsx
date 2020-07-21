@@ -1,9 +1,7 @@
 import React, { useLayoutEffect, useEffect, useState } from "react";
-import socketIOClient from "socket.io-client";
 
 import "./index.scss";
 import { CarIcon } from "./icons";
-const ENDPOINT = "http://127.0.0.1:4001";
 
 //TODO: Multiple map types
 const HereMaps = ({ latitude, longitude }) => {
@@ -14,7 +12,7 @@ const HereMaps = ({ latitude, longitude }) => {
   const [lng, setLng] = useState(longitude);
   const [lat, setLat] = useState(latitude);
   const [marker, setMarker] = useState(null);
-  const [center, setCenter] = useState(null);
+  const [hMap, setHMap] = useState(null);
 
   useEffect(() => {
     setLng(longitude);
@@ -23,40 +21,19 @@ const HereMaps = ({ latitude, longitude }) => {
   }, [longitude, latitude]);
 
   useEffect(() => {
-    const coordinates = { longitude: lng, latitude: lat };
-    const socket = socketIOClient(ENDPOINT);
-    handleConnect();
-
-    setInterval(() => socket.emit("locationFront", coordinates), 1000);
-    socket.on("locationApi", (data) => {
-      console.log("datafromSocket", data);
-    });
-
-    // CLEAN UP THE EFFECT
-    return () => socket.disconnect();
-    //
-  }, []);
-
-  useEffect(() => {
     console.log("/", marker);
-    if (marker) marker.setGeometry({ lat: latitude, lng: longitude });
+    if (marker) {
+      marker.setGeometry({ lat: latitude, lng: longitude });
+      hMap.setCenter({ lat: latitude, lng: longitude });
+    }
   }, [marker, lng]);
 
-  const handleDisconnect = () => {
-    const socket = socketIOClient(ENDPOINT);
-    console.log("disconnected");
-    socket.disconnect();
-  };
-  const handleConnect = () => {
-    const socket = socketIOClient(ENDPOINT);
-    socket.connect();
-  };
   const handleSetGeometry = (marker, hMap) => {
     // marker.setGeometry({ lat: 10, lng: 10 });
     // hMap.setCenter({ lat: 10, lng: 10 });
     console.log("this is mareker", marker);
     setMarker(marker);
-    setCenter(hMap);
+    setHMap(hMap);
   };
   useLayoutEffect(() => {
     if (!mapRef.current) return;

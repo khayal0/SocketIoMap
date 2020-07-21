@@ -20,15 +20,14 @@ io.on("connection", (socket) => {
   if (interval) {
     clearInterval(interval);
   }
-  // interval = setInterval(() => socket.emit("s", { ex: 1 }), 1000);
   socket.on("disconnect", () => {
     console.log("Client disconnected");
     clearInterval(interval);
   });
 
   socket.on("locationFront", (data) => {
-    console.log(data, "datafromFront");
-    socket.broadcast.emit("locationApi", data);
+    console.log(data, "locationFront ====<<<<");
+    socket.broadcast.emit("locationFront", data);
   });
 });
 
