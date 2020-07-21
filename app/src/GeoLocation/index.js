@@ -20,7 +20,8 @@ const GeoLocation = (props) => {
 
 export default geolocated({
   positionOptions: {
-    enableHighAccuracy: false,
+    enableHighAccuracy: true,
   },
+  watchPosition: true,
   userDecisionTimeout: 5000,
 })(GeoLocation);

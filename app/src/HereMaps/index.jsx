@@ -13,6 +13,8 @@ const HereMaps = ({ latitude, longitude }) => {
   const mapRef = React.useRef(null);
   const [lng, setLng] = useState(longitude);
   const [lat, setLat] = useState(latitude);
+  const [marker, setMarker] = useState(null);
+  const [center, setCenter] = useState(null);
 
   useEffect(() => {
     setLng(longitude);
@@ -35,6 +37,11 @@ const HereMaps = ({ latitude, longitude }) => {
     //
   }, []);
 
+  useEffect(() => {
+    console.log("/", marker);
+    if (marker) marker.setGeometry({ lat: latitude, lng: longitude });
+  }, [marker, lng]);
+
   const handleDisconnect = () => {
     const socket = socketIOClient(ENDPOINT);
     console.log("disconnected");
@@ -44,7 +51,13 @@ const HereMaps = ({ latitude, longitude }) => {
     const socket = socketIOClient(ENDPOINT);
     socket.connect();
   };
-
+  const handleSetGeometry = (marker, hMap) => {
+    // marker.setGeometry({ lat: 10, lng: 10 });
+    // hMap.setCenter({ lat: 10, lng: 10 });
+    console.log("this is mareker", marker);
+    setMarker(marker);
+    setCenter(hMap);
+  };
   useLayoutEffect(() => {
     if (!mapRef.current) return;
     // @ts-ignore
@@ -60,15 +73,15 @@ const HereMaps = ({ latitude, longitude }) => {
       pixelRatio: window.devicePixelRatio || 1,
     });
 
-    const icon = new H.map.Icon(CarIcon),
-      coords = { lat, lng },
-      marker = new H.map.Marker(coords, { icon: icon });
+    const icon = new H.map.Icon(CarIcon);
+    const coords = { lat, lng };
+    const marker = new H.map.Marker(coords, { icon: icon });
 
-    marker.setGeometry({ lat, lng });
-    hMap.setCenter({ lat, lng });
+    // marker.setGeometry({ lat, lng });
+    handleSetGeometry(marker, hMap);
 
     hMap.addObject(marker);
-    hMap.setCenter(coords);
+    // hMap.setCenter(coords);
 
     // MapEvents enables the event system
     // Behavior implements default interactions for pan/zoom (also on mobile touch environments)
@@ -86,7 +99,13 @@ const HereMaps = ({ latitude, longitude }) => {
     };
   }, [mapRef]); // This will run this hook every time this ref is updated
 
-  return <div className="map" ref={mapRef} />;
+  return (
+    <>
+      <div className="map" ref={mapRef} />
+      <span>{lng}</span>
+      <span>{lat}</span>
+    </>
+  );
 };
 
 export default HereMaps;
